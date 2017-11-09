@@ -1,0 +1,9 @@
+target/*
+.idea
+derby.log
+file.log
+studentFile.log
+studentLazyFile.log
+spark-warehouse
+metastore_db
+
