@@ -35,37 +35,15 @@ object NGrams extends App {
   val inputRDD: RDD[String] = sc.parallelize(Seq(inputStr))
   val n: Int = 2
   val topN: Int = 5
-
-
   NGrams_Sol.answer(inputRDD, n, topN).foreach(println)
-
-  //val output: Set[(String, Int)] = Set(("spark sql", 6), ("interact with", 2), ("and the", 2), ("sql is", 2), ("can also", 2))
-
-
 }
 
 object NGrams_Sol {
   def answer(input: RDD[String], n: Int, topN: Int): Set[(String, Int)] = {
+    val trim: RDD[String] = input.map(_.replaceAll("\n", " ")).map(_.replaceAll("[,.]", "")).map(_.toLowerCase)
+    val trim2: RDD[String] = trim.flatMap(x => x.split(" ").sliding(n)).map(_.mkString(" "))
+    val res: Set[(String, Int)] = trim2.map(x => (x, 1)).reduceByKey(_ + _).sortBy(_._2, false).collect().take(topN).toSet
+    res
 
-
-    val trimStr = input
-      .map(x => x.replaceAll("""[,.]""", ""))
-      .map(_.toLowerCase)
-      .flatMap(words => words.split(" ").sliding(3))
-
-
-    trimStr.collect.foreach(list => {
-      list.foreach(x => print(x + " "))
-      println()
-    })
-
-
-
-    //val ngrams = (for( i <- 1 to n) yield .sliding(i).map(p => p.toList)).flatMap(x => x)
-    //ngrams foreach println
-    //    val trigrams = trimStr.mapPartitions(_.toList.mkString(" ").sliding(3))
-    //    trigrams.foreach(println)
-
-    ???
   }
 }
