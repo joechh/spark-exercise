@@ -21,7 +21,7 @@ object NGrams extends App {
    */
 
   val inputStr: String =
-    """Spark  SQL  is a Spark module for structured data processing.
+    """Spark SQL is a Spark module for structured data processing.
       |Unlike the basic Spark RDD API, the interfaces provided by Spark SQL provide
       |Spark with more information about the structure of both the data and the
       |computation being performed. Internally, Spark SQL uses this extra information
@@ -30,25 +30,24 @@ object NGrams extends App {
       |Spark SQL can  also  be  used  to  read data from an existing Hive installation.
       |When running SQL from within another programming language the results will
       |be returned as a Dataset/DataFrame. You can also interact with the SQL interface
-      |using the command-line or over JDBC/ODBC.""".stripMargin
+      |using the command-line command--line or over JDBC/ODBC.""".stripMargin
 
   val inputRDD: RDD[String] = sc.parallelize(Seq(inputStr))
+  println(inputRDD.count)
   val n: Int = 2
   val topN: Int = 5
   NGrams_Sol.answer(inputRDD, n, topN).foreach(println)
 }
 
 
-
 object NGrams_Sol {
   def answer(input: RDD[String], n: Int, topN: Int): Set[(String, Int)] = {
-    //.replaceAll("/[^A-Za-z0-9- ]/", "");
-    //val trim: RDD[String] = input.map(_.replaceAll("[\n/]", " ")).map(_.replaceAll("""[.,\#!$%\^&\*;:{}=\_`~()]""", " ")).map(_.replaceAll("\\s+", " "))
-    val trim: RDD[String] = input.map(_.replaceAll("[\n/]", " ")).map(_.replaceAll("[^A-Za-z0-9- ]", "")).map(_.replaceAll("\\s+", " "))
-    trim.foreach(println)
-    val words: RDD[String] = trim.map(_.toLowerCase).flatMap(x => x.split(" ").sliding(n)).map(_.mkString(" ").trim)
-    words.foreach(println)
-    val res: Set[(String, Int)] = words.map(x => (x, 1)).reduceByKey(_ + _).sortBy(_._2, false).take(topN).toSet
+    val trim: RDD[String] = input.map(_.replaceAll("[^A-Za-z0-9-]", " ").replaceAll("\\s+", " ").toLowerCase())
+    val words: RDD[String] = trim.flatMap(x => x.split(" ").sliding(n)).map(_.mkString(" ").trim)
+    implicit val myOrd = new Ordering[(String, Int)] {
+      override def compare(x: (String, Int), y: (String, Int)) = x._2 - y._2
+    }
+    val res: Set[(String, Int)] = words.map(x => (x, 1)).reduceByKey(_ + _).top(topN)(myOrd).toSet
     res
 
   }
